@@ -22,12 +22,13 @@ export default function SignupPage() {
 
   const validate = () => {
     const e: Record<string, string> = {}
-    if (!name.trim())                       e.name    = 'Name is required'
-    if (!email)                             e.email   = 'Email is required'
-    else if (!/\S+@\S+\.\S+/.test(email))  e.email   = 'Enter a valid email'
-    if (!password)                          e.password = 'Password is required'
-    else if (password.length < 8)           e.password = 'At least 8 characters'
-    if (password !== confirm)               e.confirm = 'Passwords do not match'
+    if (!name.trim())                                                    e.name     = 'Name is required'
+    if (!email)                                                          e.email    = 'Email is required'
+    else if (!/\S+@\S+\.\S+/.test(email))                               e.email    = 'Enter a valid email'
+    if (!password)                                                       e.password = 'Password is required'
+    else if (password.length < 8)                                        e.password = 'At least 8 characters'
+    else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password))         e.password = 'Must include uppercase, lowercase & a number'
+    if (password !== confirm)                                            e.confirm  = 'Passwords do not match'
     setErrors(e)
     return Object.keys(e).length === 0
   }
@@ -46,9 +47,14 @@ export default function SignupPage() {
 
   const passwordStrength = () => {
     if (password.length === 0) return null
-    if (password.length < 6)  return { level: 1, label: 'Weak', color: 'bg-red-500' }
-    if (password.length < 10) return { level: 2, label: 'Fair', color: 'bg-amber-500' }
-    return { level: 3, label: 'Strong', color: 'bg-emerald-500' }
+    const hasUpper = /[A-Z]/.test(password)
+    const hasLower = /[a-z]/.test(password)
+    const hasNum   = /\d/.test(password)
+    const hasLen   = password.length >= 8
+    const score    = [hasUpper, hasLower, hasNum, hasLen].filter(Boolean).length
+    if (score <= 2) return { level: 1, label: 'Weak',   color: 'bg-red-500' }
+    if (score === 3) return { level: 2, label: 'Fair',   color: 'bg-amber-500' }
+    return              { level: 3, label: 'Strong', color: 'bg-emerald-500' }
   }
   const strength = passwordStrength()
 
@@ -132,6 +138,9 @@ export default function SignupPage() {
                 autoComplete="new-password"
                 required
               />
+              {!strength && !errors.password && (
+                <p className="text-[11px] text-slate-500 px-1">Min 8 chars · uppercase · lowercase · number</p>
+              )}
               {strength && (
                 <div className="flex items-center gap-2 px-1">
                   <div className="flex gap-1 flex-1">
