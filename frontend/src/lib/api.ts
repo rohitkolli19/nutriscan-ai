@@ -27,10 +27,13 @@ apiClient.interceptors.request.use((config) => {
 })
 
 // Response interceptor — handle 401
+// Only redirect to /login for 401s on protected routes (not on auth endpoints themselves)
 apiClient.interceptors.response.use(
   (res) => res,
   (error: AxiosError) => {
-    if (error.response?.status === 401) {
+    const url = error.config?.url ?? ''
+    const isAuthEndpoint = url.includes('/auth/login') || url.includes('/auth/signup') || url.includes('/auth/forgot')
+    if (error.response?.status === 401 && !isAuthEndpoint) {
       localStorage.removeItem('nutriscan-auth')
       window.location.href = '/login'
     }
